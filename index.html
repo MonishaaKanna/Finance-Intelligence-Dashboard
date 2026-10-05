@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinSight — Personal Finance & Decision Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+<!-- LANDING -->
+<section class="screen" id="landing">
+  <div class="hero">
+    <div class="brand light"><span class="logo" aria-hidden="true"></span><div><strong>FinSight</strong><small>Personal Finance &amp; Decision Analytics</small></div></div>
+    <h1>Know where you stand.<br><em>Decide where to go.</em></h1>
+    <p>Share a few details about your money. FinSight turns them into a private, personalised picture of your finances, with insights and what-if scenarios built from your own numbers.</p>
+    <button class="btn" id="startBtn">Begin your assessment</button>
+    <p class="fine">Takes about three minutes. Your answers stay in this browser.</p>
+  </div>
+</section>
+
+<!-- ASSESSMENT -->
+<section class="screen" id="assess">
+  <div class="assess-wrap">
+    <div class="brand light"><span class="logo" aria-hidden="true"></span><div><strong>FinSight</strong></div></div>
+    <ol class="steps" id="steps"></ol>
+    <div class="track"><i id="trackFill"></i></div>
+
+    <div class="panel" data-title="About you" data-sub="The basics that shape every projection.">
+      <div class="fields">
+        <label>Age<input id="age" type="number" min="18" max="100" required placeholder="Years"></label>
+        <label>Employment status<select id="emp" required><option value="">Select</option><option>Salaried</option><option>Self-employed</option><option>Business owner</option><option>Student</option><option>Retired</option><option>Other</option></select></label>
+        <label>Monthly income (₹)<input id="income" type="number" min="0" step="any" required placeholder="After tax"></label>
+        <label>Other monthly income (₹)<input id="other" type="number" min="0" step="any" placeholder="Rent, freelance, interest. Leave blank if none"></label>
+        <label class="full">Current savings (₹)<input id="savings" type="number" min="0" step="any" required placeholder="Cash and bank balances"></label>
+      </div>
+    </div>
+
+    <div class="panel" data-title="Your monthly expenses" data-sub="Enter what you spend in a typical month. Add or remove lines freely.">
+      <div class="rows-head"><span>Category</span><span>Amount (₹)</span><span>Pattern</span><span>Nature</span><span></span></div>
+      <div id="expRows"></div>
+      <button type="button" class="link" data-add="exp">Add an expense</button>
+    </div>
+
+    <div class="panel" data-title="Investments" data-sub="Holdings you own today. Skip this step if you have none.">
+      <div class="rows-head two"><span>Type</span><span>Current value (₹)</span><span></span></div>
+      <div id="invRows"></div>
+      <button type="button" class="link" data-add="inv">Add an investment</button>
+    </div>
+
+    <div class="panel" data-title="Financial goals" data-sub="What are you saving toward?">
+      <div class="rows-head goals"><span>Goal</span><span>Target (₹)</span><span>Saved so far (₹)</span><span>Target date</span><span></span></div>
+      <div id="goalRows"></div>
+      <button type="button" class="link" data-add="goal">Add a goal</button>
+    </div>
+
+    <div class="panel" data-title="Your assumptions" data-sub="Annual rates used for every projection. You can fine-tune them later in Scenario Analysis.">
+      <div class="fields three">
+        <label>Expected investment return (%)<input id="ret" type="number" step="0.1" min="0" max="30" required placeholder="Per year"></label>
+        <label>Inflation (%)<input id="infl" type="number" step="0.1" min="0" max="25" required placeholder="Per year"></label>
+        <label>Income growth (%)<input id="growth" type="number" step="0.1" min="0" max="50" required placeholder="Per year"></label>
+      </div>
+    </div>
+
+    <div class="panel" data-title="Review &amp; confirm" data-sub="A quick look before we build your picture.">
+      <div id="reviewBody" class="review"></div>
+    </div>
+
+    <p class="msg" id="stepMsg" role="alert"></p>
+    <div class="nav-row"><button class="btn ghost" id="back" type="button">Back</button><button class="btn" id="next" type="button">Continue</button></div>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section class="screen" id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="logo" aria-hidden="true"></span><div><strong>FinSight</strong><small>Decision Analytics</small></div></div>
+    <nav aria-label="Main">
+      <button class="nav-btn active" data-view="overview">Overview</button>
+      <button class="nav-btn" data-view="spending">Spending Analytics</button>
+      <button class="nav-btn" data-view="budget">Budget Analysis</button>
+      <button class="nav-btn" data-view="investments">Investments</button>
+      <button class="nav-btn" data-view="goals">Financial Goals</button>
+      <button class="nav-btn" data-view="scenario">Scenario Analysis</button>
+    </nav>
+    <div class="side-actions"><button class="nav-btn" id="editBtn">Edit my assessment</button><button class="nav-btn" id="resetBtn">Clear my data</button></div>
+    <p class="demo-note">Built from your inputs. Educational use, not financial advice.</p>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle navigation">☰</button>
+      <div><h1 id="viewTitle">Overview</h1><p id="viewSub" class="muted"></p></div>
+      <div class="user"><span class="chip" id="periodChip"></span><span class="avatar" id="avatar"></span></div>
+    </header>
+
+    <main>
+      <section class="view active" id="overview">
+        <p class="lede" id="lede"></p>
+        <div class="kpis" id="kpis"></div>
+        <div class="grid g2">
+          <article class="card"><h2>Income vs expenses, next 12 months</h2><div class="chart"><canvas id="incExpChart"></canvas></div></article>
+          <article class="card"><h2>Projected savings balance</h2><div class="chart"><canvas id="savingsChart"></canvas></div></article>
+        </div>
+        <div class="grid g3">
+          <article class="card"><h2>Expense categories</h2><div class="chart"><canvas id="catDonut"></canvas></div></article>
+          <article class="card"><h2>Key insights</h2><ul class="insights" id="insights"></ul></article>
+          <article class="card"><h2>Largest expense lines</h2><table class="tbl"><tbody id="topLines"></tbody></table></article>
+        </div>
+      </section>
+
+      <section class="view" id="spending">
+        <div class="kpis k4" id="spendKpis"></div>
+        <div class="grid g2">
+          <article class="card"><h2>Projected monthly expenses</h2><div class="chart"><canvas id="monthlyExpChart"></canvas></div></article>
+          <article class="card"><h2>Category-wise spending</h2><div class="chart"><canvas id="catBar"></canvas></div></article>
+          <article class="card"><h2>Essential vs discretionary</h2><div class="chart"><canvas id="essChart"></canvas></div></article>
+          <article class="card"><h2>Fixed vs variable</h2><div class="chart"><canvas id="fixChart"></canvas></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="budget">
+        <article class="card">
+          <h2>Monthly budget vs actual</h2>
+          <p class="muted">Budgets start equal to what you entered. Set your own targets and watch the variance respond.</p>
+          <div class="scroll"><table class="tbl wide" id="budgetTbl">
+            <thead><tr><th>Category</th><th>Budget (₹)</th><th>Actual</th><th>Variance</th><th>Utilization</th></tr></thead>
+            <tbody></tbody><tfoot></tfoot>
+          </table></div>
+        </article>
+      </section>
+
+      <section class="view" id="investments">
+        <p class="notice">Risk scores per asset type are illustrative educational assumptions. Values are the ones you entered.</p>
+        <div class="kpis k4" id="invKpis"></div>
+        <div class="grid g2">
+          <article class="card"><h2>Asset allocation</h2><div class="chart"><canvas id="allocDonut"></canvas></div></article>
+          <article class="card"><h2>Holdings</h2><div class="scroll"><table class="tbl" id="invTbl"><thead><tr><th>Asset</th><th>Value</th><th>Share</th><th>Risk (0–10)</th></tr></thead><tbody></tbody></table></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="goals"><div class="grid g3" id="goalCards"></div></section>
+
+      <section class="view" id="scenario">
+        <div class="grid scen">
+          <article class="card controls">
+            <h2>Assumptions</h2>
+            <label>Goal to plan for<select id="s_goal"></select></label>
+            <label>Income growth <output id="o_inc"></output><input type="range" id="s_inc" min="0" max="30" step="0.5"></label>
+            <label>Expense growth <output id="o_exp"></output><input type="range" id="s_exp" min="0" max="30" step="0.5"></label>
+            <label>Inflation <output id="o_inf"></output><input type="range" id="s_inf" min="0" max="15" step="0.5"></label>
+            <label>Expected investment return <output id="o_ret"></output><input type="range" id="s_ret" min="0" max="20" step="0.5"></label>
+            <button class="link" id="scenReset" type="button">Reset to my assumptions</button>
+          </article>
+          <div>
+            <div class="kpis k4" id="scenKpis"></div>
+            <article class="card"><h2>Projected financial position</h2><div class="chart tall"><canvas id="scenChart"></canvas></div></article>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</section>
+</body>
+</html>
